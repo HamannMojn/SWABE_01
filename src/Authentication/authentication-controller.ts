@@ -1,11 +1,12 @@
 import { json, Request, Response } from 'express';
-import { User, UserSchema } from "../models/User";
+import { User, userRole, UserSchema } from "../models/User";
 import mongoose from "mongoose";
 import { compare, hash } from 'bcrypt'
 import { ROUNDS } from "../utils/auth-crypto";
 import { sign } from 'jsonwebtoken';
 import { join } from 'path'
 import { readFile } from 'fs'
+import { textSpanContainsPosition } from 'typescript';
 
 const usersConnection = mongoose.createConnection('mongodb://localhost:27017/users');
 const userModel = usersConnection.model('User', UserSchema);
@@ -36,15 +37,28 @@ export const Users = { list, read }
 export const Create = async (req: Request, res: Response) => {
     const { password, name } = req.body;
     const email = req.body.email.toLowerCase();
+    let role;
+    switch (req.body.role) {
+        case userRole.clerk:
+            role = userRole.clerk;
+            break;
+        case userRole.manager:
+            role = userRole.manager;
+            break;
+        default:
+            role = userRole.guest
+            break;
+    }
+    
     if(await userExists(email)){
         res.status(400).json({
             "message": "User already exists"
         });
     } else {
         const hashedPassword = await hash(password, ROUNDS);
-        let user = newUser(email, name, hashedPassword)
+        let user = newUser(email, name, hashedPassword, role)
         await user.save();
-        res.json(user)
+        res.status(200).json(user)
     }
 }
 
@@ -72,10 +86,10 @@ export const Login = async (req: Request, res: Response) => {
 
 const userExists = (email: string) => userModel.findOne({ email }).exec()
 
-const newUser = (email: string, name: any, password: any) => new userModel({
+const newUser = (email: string, name: string, password: string, role: userRole) => new userModel({
         email: email,
         name: name,
         password: password,
-        role: "Guest"
+        role: role
     });
 
