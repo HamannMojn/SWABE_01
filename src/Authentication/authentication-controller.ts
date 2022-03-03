@@ -1,4 +1,4 @@
-import { json, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { User, userRole, UserSchema } from "../models/User";
 import mongoose from "mongoose";
 import { compare, hash } from 'bcrypt'
@@ -6,7 +6,6 @@ import { ROUNDS } from "../utils/auth-crypto";
 import { sign } from 'jsonwebtoken';
 import { join } from 'path'
 import { readFile } from 'fs'
-import { textSpanContainsPosition } from 'typescript';
 
 const usersConnection = mongoose.createConnection('mongodb://localhost:27017/users');
 const userModel = usersConnection.model('User', UserSchema);
@@ -14,7 +13,6 @@ const userModel = usersConnection.model('User', UserSchema);
 const X5U = 'http://localhost:3000/auth-rsa256.key.pub';
 
 const PATH_PRIVATE_KEY = join(__dirname, '..', '..', 'auth-rsa.key');
-const PATH_PUBLIC_KEY = join(__dirname, '..', '..', 'public', 'auth-rsa.pub.key');
 
 const list = async (req: Request, res: Response) => {
     let result = await userModel.find({}).lean().exec();
@@ -77,8 +75,10 @@ export const Login = async (req: Request, res: Response) => {
         if(err){
             res.sendStatus(500);
         } else {
-            const jwt = sign({ email, user }, privateKey, { expiresIn: '1h', header: {alg: 'RS256', x5u: X5U }})
-            res.json(jwt);
+            const jwt = sign({user}, privateKey, { expiresIn: '1h', header: {alg: 'RS256', x5u: X5U }})
+            res.json({
+                "jwt": jwt
+            });
         }
     })
     

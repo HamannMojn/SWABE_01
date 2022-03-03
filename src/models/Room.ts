@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import { Reservation, ReservationSchema } from './Reservation';
 
@@ -8,5 +9,5 @@ export interface Room {
 
 export const RoomSchema = new Schema<Room> ({
     roomNumber: {type: Number, required: true },
-    reservations: [ReservationSchema]
+    reservations: [{type: mongoose.Schema.Types.ObjectId, ref: "Reservation"}]
 })
