@@ -14,7 +14,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
         if(err){
             return res.sendStatus(500);
         } else {
-            const jwtpayload = <User>jwt.verify(token, publicKey);
+            const jwtpayload = jwt.verify(token, publicKey);
             if(!jwtpayload) return res.status(401).send('Access Denied');
             next()         
         }
@@ -30,16 +30,14 @@ export const authRole = (roles: Array<userRole>) => {
             if(err){
                 res.sendStatus(500);
             } else {
-                const jwtpayload = <User>jwt.verify(token, publicKey);
+                const jwtpayload = <any>jwt.verify(token, publicKey);
                 if(!jwtpayload) return res.status(401).send('Access Denied jwt');
-                console.log(jwtpayload.role)
 
                 roles.forEach((role) => {
-                    if(jwtpayload.role == role.toString()){
+                    if(jwtpayload.user.role == role.toString()){
                         next()
                     }
                 })
-                return res.status(401).send('Access Denied role');
             }
         })
     }

@@ -4,7 +4,7 @@ import { Reservation, ReservationSchema } from './Reservation';
 
 export interface Room {
     roomNumber: number,
-    reservations: [Reservation]
+    reservations: Array<Reservation>
 }
 
 export const RoomSchema = new Schema<Room> ({
